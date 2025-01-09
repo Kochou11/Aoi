@@ -30,7 +30,7 @@ Here are the planned features to enhance the application:
 
 - [ ] **Anime Streaming**: Use [Anix API](https://github.com/hase0278/anix-api) to fetch anime streams.
 - [ ] **Video Playback**: Integrate [Art Player](https://github.com/zhw2590582/ArtPlayer) to play `.m3u8` anime streams.
-- [ ] **Music Section**: Use a dedicated API for music content and allow playback.
+- [ ] **Music Section**: Use animethemes API for music content and allow playback.
 - [ ] **Manga Reading**: Integrate the [MangaDex API](https://api.mangadex.org) to fetch manga chapters and pages, enabling users to read manga.
 - [ ] **Comment Section**: Add a Disqus comment section for user interaction.
 - [ ] **User Authentication**: Implement user authentication and maintain a user database.
