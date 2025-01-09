@@ -1,7 +1,7 @@
 
 # AnimeWave 2000
 
-AnimeWave 2000 is a Y2K-inspired web application for anime, manga, and music enthusiasts. It allows users to explore, sort, and view anime, manga, and music data fetched from various APIs.  
+Aoi 2000 is a Y2K-inspired web application for anime, manga, and music enthusiasts. It allows users to explore, sort, and view anime, manga, and music data fetched from various APIs.  
 
 ## 🚧 Under Construction
 This project is currently a work in progress. While many features are functional, several exciting updates and improvements are underway. Stay tuned for more!
@@ -23,7 +23,7 @@ This project is currently a work in progress. While many features are functional
    ```bash
    git clone <repository-url>
    ```
-2. Open `works💯.html` in a browser.
+2. Open `index.html` in a browser.
 
 ## To-Do List
 Here are the planned features to enhance the application:
