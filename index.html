@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aoi 2000</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+</head>
+<body class="bg-purple-50 min-h-screen" x-data="{ 
+    activeTab: 'anime',
+    searchQuery: '',
+    showModal: false,
+    selectedItem: null,
+    favoriteItems: [],
+    sortBy: 'title',
+    viewStyle: 'grid',
+    isLoading: false,
+    error: null,
+    entries: {
+        anime: [],
+        manga: [],
+        music: []
+    },
+
+    async init() {
+        await this.fetchAnimeData();
+    },
+
+    async fetchAnimeData() {
+        this.isLoading = true;
+        this.error = null;
+        try {
+            const response = await fetch('https://kitsu.io/api/edge/anime?' + new URLSearchParams({
+                'filter[text]': this.searchQuery || 'popular',
+                'page[limit]': '20'
+            }));
+            if (!response.ok) throw new Error('Failed to fetch anime data');
+            const data = await response.json();
+            this.entries.anime = data.data.map(item => ({
+                id: item.id,
+                title: item.attributes.canonicalTitle || 'Unknown Title',
+                year: item.attributes.startDate ? new Date(item.attributes.startDate).getFullYear() : 'N/A',
+                genre: item.attributes.subtype || 'N/A',
+                rating: item.attributes.averageRating || 'N/A',
+                episodes: item.attributes.episodeCount || 'N/A',
+                description: item.attributes.synopsis || 'No description available',
+                image: item.attributes.posterImage?.medium || '/api/placeholder/300/200',
+                status: item.attributes.status || 'Unknown',
+                ageRating: item.attributes.ageRating || 'N/A'
+            }));
+        } catch (error) {
+            console.error('Error fetching anime:', error);
+            this.error = 'Failed to fetch anime data';
+            this.entries.anime = [];
+        }
+        this.isLoading = false;
+    },
+
+    async fetchMangaData() {
+        this.isLoading = true;
+        this.error = null;
+        try {
+            const response = await fetch('https://kitsu.io/api/edge/manga?' + new URLSearchParams({
+                'filter[text]': this.searchQuery || 'popular',
+                'page[limit]': '20'
+            }));
+            if (!response.ok) throw new Error('Failed to fetch manga data');
+            const data = await response.json();
+            this.entries.manga = data.data.map(item => ({
+                id: item.id,
+                title: item.attributes.canonicalTitle || 'Unknown Title',
+                year: item.attributes.startDate ? new Date(item.attributes.startDate).getFullYear() : 'N/A',
+                genre: item.attributes.subtype || 'N/A',
+                rating: item.attributes.averageRating || 'N/A',
+                volumes: item.attributes.volumeCount || 'N/A',
+                description: item.attributes.synopsis || 'No description available',
+                image: item.attributes.posterImage?.medium || '/api/placeholder/300/200',
+                status: item.attributes.status || 'Unknown',
+                ageRating: item.attributes.ageRating || 'N/A'
+            }));
+        } catch (error) {
+            console.error('Error fetching manga:', error);
+            this.error = 'Failed to fetch manga data';
+            this.entries.manga = [];
+        }
+        this.isLoading = false;
+    },
+
+    async fetchMusicData() {
+        this.isLoading = true;
+        this.error = null;
+        try {
+            // Using Jikan API to fetch anime music data instead
+            const response = await fetch('https://api.jikan.moe/v4/anime/1/themes');
+            if (!response.ok) throw new Error('Failed to fetch music data');
+            const data = await response.json();
+            
+            // Combine opening and ending themes
+            const themes = [
+                ...(data.data?.openings || []).map(opening => ({
+                    id: Math.random().toString(),
+                    title: opening,
+                    type: 'Opening Theme',
+                    year: 'N/A',
+                    genre: 'Anime Music',
+                    description: 'Opening Theme Song',
+                    image: '/api/placeholder/300/200',
+                    status: 'Released',
+                    artist: 'Various Artists'
+                })),
+                ...(data.data?.endings || []).map(ending => ({
+                    id: Math.random().toString(),
+                    title: ending,
+                    type: 'Ending Theme',
+                    year: 'N/A',
+                    genre: 'Anime Music',
+                    description: 'Ending Theme Song',
+                    image: '/api/placeholder/300/200',
+                    status: 'Released',
+                    artist: 'Various Artists'
+                }))
+            ];
+            
+            this.entries.music = themes;
+            
+            if (themes.length === 0) {
+                this.error = 'No music entries found';
+            }
+        } catch (error) {
+            console.error('Error fetching music:', error);
+            this.error = 'Failed to fetch music data';
+            this.entries.music = [];
+        }
+        this.isLoading = false;
+    },
+
+    debounceSearch: function(fn, wait) {
+        let timeoutId;
+        return function (...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => fn.apply(this, args), wait);
+        };
+    }
+}" 
+x-init="init()"
+@search-changed="debounceSearch(() => {
+    if (activeTab === 'anime') fetchAnimeData();
+    else if (activeTab === 'manga') fetchMangaData();
+    else if (activeTab === 'music') fetchMusicData();
+}, 500)()">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-purple-400 via-pink-300 to-blue-300 p-6 shadow-lg">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-4xl font-bold text-white text-center mb-2 tracking-wider">Aoi 2000</h1>
+            <p class="text-white text-center opacity-75">Your Y2K Portal to Anime, Manga & Music</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto p-6">
+        <!-- Control Bar -->
+        <div class="flex flex-col md:flex-row gap-4 mb-8">
+            <!-- Search Bar -->
+            <div class="flex-grow">
+                <input 
+                    type="text" 
+                    x-model="searchQuery"
+                    @input="$dispatch('search-changed')"
+                    placeholder="Search..."
+                    class="w-full p-3 rounded-lg border-2 border-purple-200 focus:border-purple-400 focus:outline-none bg-white/50 backdrop-blur-sm"
+                >
+            </div>
+            <!-- Controls -->
+            <div class="flex gap-2">
+                <select 
+                    x-model="sortBy"
+                    class="p-3 rounded-lg border-2 border-purple-200 bg-white/50 backdrop-blur-sm"
+                >
+                    <option value="title">Sort by Title</option>
+                    <option value="year">Sort by Year</option>
+                    <option value="rating">Sort by Rating</option>
+                </select>
+                <button
+                    @click="viewStyle = viewStyle === 'grid' ? 'list' : 'grid'"
+                    class="p-3 rounded-lg border-2 border-purple-200 bg-white/50 backdrop-blur-sm"
+                >
+                    <span x-text="viewStyle === 'grid' ? 'List View' : 'Grid View'"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex flex-wrap gap-2 mb-6">
+            <template x-for="tab in ['anime', 'manga', 'music']" :key="tab">
+                <button 
+                    @click="activeTab = tab;
+                           if (tab === 'anime') fetchAnimeData();
+                           if (tab === 'manga') fetchMangaData();
+                           if (tab === 'music') fetchMusicData();"
+                    :class="{
+                        'bg-purple-500 text-white': activeTab === tab,
+                        'bg-white/50 text-purple-700': activeTab !== tab,
+                        'px-6 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-sm border border-purple-200': true
+                    }"
+                    x-text="tab.charAt(0).toUpperCase() + tab.slice(1)"
+                ></button>
+            </template>
+        </div>
+
+        <!-- Error Message -->
+        <div x-show="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <span class="block sm:inline" x-text="error"></span>
+        </div>
+
+        <!-- Loading State -->
+        <div x-show="isLoading" class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500"></div>
+        </div>
+
+        <!-- Content Cards -->
+        <div 
+            x-show="!isLoading"
+            :class="{
+                'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6': viewStyle === 'grid',
+                'flex flex-col gap-4': viewStyle === 'list'
+            }"
+        >
+            <template x-for="item in entries[activeTab]
+             .sort((a, b) => a[sortBy] > b[sortBy] ? 1 : -1)
+ " :key="item.id">
+                <div 
+                    @click="selectedItem = item; showModal = true"
+                    class="bg-white/50 backdrop-blur-sm p-6 rounded-lg border border-purple-200 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                    :class="{ 'flex gap-4': viewStyle === 'list' }"
+                >
+                    <img 
+                        :src="item.image" 
+                        :alt="item.title"
+                        class="w-full h-48 object-cover rounded-lg mb-4"
+                        :class="{ 'w-48 h-32 mb-0': viewStyle === 'list' }"
+                    >
+                    <div>
+                        <h3 class="text-xl font-bold text-purple-800 mb-2" x-text="item.title"></h3>
+                        <p class="text-purple-600 mb-2">
+                            <span x-text="item.year"></span>
+                            <span x-show="item.genre" x-text="' • ' + item.genre"></span>
+                            <span x-show="item.artist" x-text="' • ' + item.artist"></span>
+                        </p>
+                        <p class="text-purple-500 text-sm line-clamp-2" x-text="item.description"></p>
+                        <div class="mt-4 flex gap-2 flex-wrap">
+                            <span x-show="item.rating !== 'N/A'" class="px-2 py-1 bg-purple-100 rounded-full text-xs">
+                                ⭐️ <span x-text="(parseFloat(item.rating) / 20).toFixed(1)"></span>
+                            </span>
+                            <span x-show="item.episodes !== 'N/A'" class="px-2 py-1 bg-purple-100 rounded-full text-xs">
+                                📺 <span x-text="item.episodes + ' eps'"></span>
+                            </span>
+                            <span x-show="item.volumes !== 'N/A'" class="px-2 py-1 bg-purple-100 rounded-full text-xs">
+                                📚 <span x-text="item.volumes + ' vol'"></span>
+                            </span>
+                            <span x-show="item.status" class="px-2 py-1 bg-purple-100 rounded-full text-xs" x-text="item.status">
+                            </span>
+                            <button 
+                                @click.stop="favoriteItems.includes(item.title) ? 
+                                    favoriteItems = favoriteItems.filter(t => t !== item.title) : 
+                                    favoriteItems.push(item.title)"
+                                class="px-2 py-1 bg-purple-100 rounded-full text-xs"
+                            >
+                                <span x-text="favoriteItems.includes(item.title) ? '❤️' : '🤍'"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </main>
+
+    <!-- Detail Modal -->
+    <div
+        x-show="showModal"
+        @click="showModal = false"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+        <div
+            @click.stop
+            x-show="showModal"
+            x-transition
+            class="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        >
+            <template x-if="selectedItem">
+                <div>
+                    <img 
+                        :src="selectedItem.image" 
+                        :alt="selectedItem.title"
+                        class="w-full h-64 object-cover rounded-lg mb-4"
+                    >
+                    <h2 class="text-2xl font-bold mb-2" x-text="selectedItem.title"></h2>
+                    <p class="text-gray-600 mb-4" x-text="selectedItem.description"></p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <template x-for="[key, value] in Object.entries(selectedItem)" :key="key">
+                            <div x-show="!['title', 'description', 'image', 'id'].includes(key)">
+                                <span class="font-medium" x-text="key.charAt(0).toUpperCase() + key.slice(1) + ': '"></span>
+                                <span x-text="value"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white/30 backdrop-blur-sm mt-12 py-6">
+        <p class="text-center text-purple-600">&copy; 2025 Aoi 2000 • type shi</p>
+    </footer>
+
+
+
+</body>
+</html>
