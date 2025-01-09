@@ -1,5 +1,5 @@
 
-# AnimeWave 2000
+# Aoi 2000
 
 Aoi 2000 is a Y2K-inspired web application for anime, manga, and music enthusiasts. It allows users to explore, sort, and view anime, manga, and music data fetched from various APIs.  
 
